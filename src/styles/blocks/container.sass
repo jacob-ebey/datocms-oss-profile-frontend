@@ -1,4 +1,32 @@
+.container
+  &__overlay
+    position: fixed
+    z-index: 999
+    top: 0
+    right: 0
+    bottom: 0
+    left: 0
+    visibility: hidden
+    opacity: 0
+    background-color: rgba(0, 0, 0, 0.6)
+    transition: all 0.2s ease-in-out
+
+  &__body
+    overflow-x: hidden
+
+.container__sidebar
+  overflow-y: auto
+
 @media screen and (max-width: 899px)
+  .container.is-open
+      overflow-x: hidden
+    
+  .container__overlay
+    .container.is-open &
+      left: 200px
+      visibility: visible
+      opacity: 1
+
   .container__sidebar
     box-sizing: border-box
     width: 200px
@@ -15,14 +43,17 @@
     background-color: $light-bg-color
 
     .container.is-open &
-      transform: translate3d(0px, 0, 0);
+      transform: translate3d(0px, 0, 0)
 
   .container__body
     transform: translate3d(0px, 0, 0)
     transition: transform 0.2s ease-in-out
+    overflow-x: hidden
 
     .container.is-open &
       transform: translate3d(200px, 0, 0)
+      pointer-events: none
+      user-select: none
 
 @media screen and (min-width: 900px)
   .container
@@ -39,6 +70,10 @@
     box-sizing: border-box
     padding: 40px
     background-color: $light-bg-color
+
+    & > .sidebar
+      position: sticky
+      top: 40px
 
   .container__body
     flex: 1

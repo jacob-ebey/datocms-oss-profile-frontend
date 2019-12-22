@@ -1,55 +1,36 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { Link } from 'gatsby'
-import { StaticQuery, graphql } from "gatsby"
-import { HelmetDatoCms } from 'gatsby-source-datocms'
+import React from "react"
+import cx from "classnames"
+import { graphql, useStaticQuery, Link } from "gatsby"
+import Img from "gatsby-image"
+import { HelmetDatoCms } from "gatsby-source-datocms"
 
-import '../styles/index.sass'
+import "../styles/index.sass"
 
-const TemplateWrapper = ({ children }) => (
-  <StaticQuery query={graphql`
-    query LayoutQuery
-    {
-      datoCmsSite {
-        globalSeo {
-          siteName
-        }
-        faviconMetaTags {
-          ...GatsbyDatoCmsFaviconMetaTags
-        }
-      }
-      datoCmsHome {
-        seoMetaTags {
-          ...GatsbyDatoCmsSeoMetaTags
-        }
-        introTextNode {
-          childMarkdownRemark {
-            html
-          }
-        }
-        copyright
-      }
-      allDatoCmsSocialProfile(sort: { fields: [position], order: ASC }) {
-        edges {
-          node {
-            profileType
-            url
-          }
-        }
-      }
-    }
-  `}
-  render={data => (
-    <div className="container">
+const TemplateWrapper = ({ children }) => {
+  const data = useStaticQuery(QUERY)
+
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const toggleMenu = React.useCallback(() => setMenuOpen(!menuOpen), [
+    menuOpen,
+    setMenuOpen,
+  ])
+
+  return (
+    <div className={cx("container", menuOpen && "is-open")}>
       <HelmetDatoCms
         favicon={data.datoCmsSite.faviconMetaTags}
         seo={data.datoCmsHome.seoMetaTags}
       />
       <div className="container__sidebar">
         <div className="sidebar">
+          {data.datoCmsHome.profileImage && (
+            <Img fixed={data.datoCmsHome.profileImage.fixed} />
+          )}
+
           <h6 className="sidebar__title">
             <Link to="/">{data.datoCmsSite.globalSeo.siteName}</Link>
           </h6>
+
           <div
             className="sidebar__intro"
             dangerouslySetInnerHTML={{
@@ -71,7 +52,9 @@ const TemplateWrapper = ({ children }) => (
                 href={profile.url}
                 target="blank"
                 className={`social social--${profile.profileType.toLowerCase()}`}
-              > </a>
+              >
+                {" "}
+              </a>
             ))}
           </p>
           <div className="sidebar__copyright">{data.datoCmsHome.copyright}</div>
@@ -81,7 +64,7 @@ const TemplateWrapper = ({ children }) => (
         <div className="container__mobile-header">
           <div className="mobile-header">
             <div className="mobile-header__menu">
-              <Link to="#" data-js="toggleSidebar" />
+              <button onClick={toggleMenu} />
             </div>
             <div className="mobile-header__logo">
               <Link to="/">{data.datoCmsSite.globalSeo.siteName}</Link>
@@ -90,13 +73,56 @@ const TemplateWrapper = ({ children }) => (
         </div>
         {children}
       </div>
+      <div className="container__overlay" onClick={toggleMenu} />
     </div>
-    )}
-  />
-)
-
-TemplateWrapper.propTypes = {
-  children: PropTypes.object,
+  )
 }
+
+const QUERY = graphql`
+  query LayoutQuery {
+    datoCmsSite {
+      globalSeo {
+        siteName
+      }
+      faviconMetaTags {
+        ...GatsbyDatoCmsFaviconMetaTags
+      }
+    }
+    datoCmsHome {
+      seoMetaTags {
+        ...GatsbyDatoCmsSeoMetaTags
+      }
+      profileImage {
+        fixed(
+          width: 200
+          imgixParams: {
+            fm: "png"
+            auto: "compress"
+            mask: "ellipse"
+            w: "200"
+            h: "200"
+            fit: "clamp"
+          }
+        ) {
+          ...GatsbyDatoCmsFixed
+        }
+      }
+      introTextNode {
+        childMarkdownRemark {
+          html
+        }
+      }
+      copyright
+    }
+    allDatoCmsSocialProfile(sort: { fields: [position], order: ASC }) {
+      edges {
+        node {
+          profileType
+          url
+        }
+      }
+    }
+  }
+`
 
 export default TemplateWrapper
